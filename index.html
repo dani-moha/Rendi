@@ -470,4 +470,29 @@
         const shimmer = Math.sin(time * 2.4 + i * 0.017) * 0.028 * morph;
         pos[i3] += ((bx + dx) - pos[i3]) * 0.14;
         pos[i3 + 1] += ((by + dy) - pos[i3 + 1]) * 0.14;
-        pos[i3 + 2] += (bz + shimmer - 
+        pos[i3 + 2] += (bz + shimmer - pos[i3 + 2]) * 0.14;
+      }
+      heartGeometry.attributes.position.needsUpdate = true;
+
+      renderer.render(scene, camera);
+
+      if (!textRevealed && rawProgress >= 0.92) {
+        textRevealed = true;
+        document.getElementById("centerpiece").classList.add("visible");
+        document.getElementById("message").classList.add("visible");
+        setTimeout(() => {
+          document.getElementById("hint").classList.add("hide");
+        }, 3500);
+      }
+    }
+    animate();
+
+    addEventListener("resize", () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.position.z = innerWidth < 600 ? 44 : 39;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  </script>
+</body>
+</html>
