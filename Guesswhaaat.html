@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#090511" />
+  <title>For Brenda — Forever & Always</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --rose: #ff6b9d;
+      --gold: #ffd0a6;
+      --violet: #b58aff;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%; margin: 0; overflow: hidden;
+      background: #090511;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    body {
+      background:
+        radial-gradient(ellipse at 50% 48%, rgba(105, 24, 84, .32), transparent 50%),
+        radial-gradient(ellipse at 50% 100%, rgba(43, 20, 75, .35), transparent 58%),
+        #090511;
+    }
+    canvas {
+      display: block; width: 100%; height: 100%; touch-action: none;
+      position: absolute; inset: 0; z-index: 1;
+    }
+    .vignette {
+      position: fixed; inset: 0; pointer-events: none; z-index: 3;
+      background: radial-gradient(ellipse at center, transparent 35%, rgba(3, 2, 9, .62) 100%);
+    }
+
+    /* Interactive Prank / Trick Overlay Screen */
+    #trick-screen {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: radial-gradient(circle at center, #1c0b24 0%, #090511 85%);
+      padding: 24px; text-align: center;
+      transition: opacity 1.2s ease, transform 1.2s ease;
+    }
+    #trick-screen.fade-out {
+      opacity: 0; transform: scale(1.08); pointer-events: none;
+    }
+    .trick-card {
+      background: rgba(25, 12, 35, 0.9);
+      border: 1px solid rgba(255, 107, 157, 0.3);
+      padding: 32px 24px; border-radius: 24px;
+      max-width: 420px; width: 100%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,107,157,0.2);
+      backdrop-filter: blur(12px);
+    }
+    .trick-card h2 {
+      color: #fff0f6; font-size: clamp(20px, 4.5vw, 26px);
+      margin-bottom: 12px; font-weight: 700; letter-spacing: 0.05em;
+    }
+    .trick-card p {
+      color: #ffd6e4; font-size: clamp(14px, 3.2vw, 17px);
+      margin-bottom: 28px; line-height: 1.5; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .trick-buttons {
+      display: flex; gap: 16px; justify-content: center; position: relative; min-height: 50px;
+    }
+    .btn {
+      padding: 12px 28px; border-radius: 999px; font-weight: 700; font-size: 16px;
+      cursor: pointer; border: none; letter-spacing: 0.08em; transition: transform 0.2s ease;
+    }
+    .btn-yes {
+      background: linear-gradient(135deg, #ff3b7f, #c34cff);
+      color: white; box-shadow: 0 4px 20px rgba(255, 59, 127, 0.5);
+    }
+    .btn-yes:active { transform: scale(0.95); }
+    .btn-no {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ff99c8; border: 1px solid rgba(255, 153, 200, 0.3);
+      position: relative; transition: 0.15s ease-out;
+    }
+
+    /* Floating Multicolor Butterflies & Emojis Layer */
+    .butterfly-container {
+      position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 2;
+    }
+    .floating-butterfly {
+      position: absolute;
+      font-size: clamp(20px, 3.5vw, 32px);
+      animation: floatButterfly 12s ease-in-out infinite;
+      opacity: 0.9;
+    }
+    @keyframes floatButterfly {
+      0% { transform: translate(-10vw, 110vh) rotate(0deg) scale(0.7); opacity: 0; }
+      20% { opacity: 0.95; }
+      80% { opacity: 0.95; }
+      100% { transform: translate(110vw, -10vh) rotate(60deg) scale(1.3); opacity: 0; }
+    }
+
+    .centerpiece {
+      position: fixed; left: 50%; top: 49%; transform: translate(-50%, -50%) scale(0.95);
+      width: min(88vw, 480px); padding: 24px 18px;
+      text-align: center; pointer-events: none; z-index: 5;
+      opacity: 0; filter: blur(6px);
+      transition: opacity 1.8s ease, filter 1.8s ease, transform 1.8s ease;
+      background: radial-gradient(ellipse at center, rgba(9, 5, 17, 0.78) 0%, rgba(9, 5, 17, 0.42) 55%, transparent 78%);
+      border-radius: 50%;
+    }
+    .centerpiece.visible {
+      opacity: 1; filter: blur(0);
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .centerpiece .eyebrow {
+      display: block; margin-bottom: 6px; color: #ffe2bd;
+      font-size: clamp(11px, 2.4vw, 13px); font-weight: 600;
+      letter-spacing: .24em; text-transform: uppercase;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 12px rgba(255, 180, 120, 0.6);
+    }
+    .centerpiece .name {
+      color: #ffffff; font-size: clamp(32px, 7.5vw, 50px);
+      font-weight: 700; letter-spacing: .12em;
+      font-family: Georgia, "Times New Roman", serif; font-style: italic;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 1), 0 4px 14px rgba(0, 0, 0, 0.95), 0 0 18px rgba(255, 75, 145, 0.85);
+    }
+    .centerpiece .sub {
+      display: block; margin-top: 8px; color: #ffe8f1;
+      font-size: clamp(11px, 2.5vw, 14px); font-weight: 600;
+      letter-spacing: .18em; text-transform: uppercase;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.98), 0 0 12px rgba(255, 105, 180, 0.7);
+    }
+
+    .message {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: max(26px, env(safe-area-inset-bottom));
+      width: min(92vw, 540px); padding: 10px 18px;
+      text-align: center; color: #fff0f6; z-index: 5;
+      font-size: clamp(12px, 2.6vw, 15px); font-weight: 600;
+      letter-spacing: .12em; pointer-events: none;
+      background: rgba(9, 5, 17, 0.58);
+      border: 1px solid rgba(255, 140, 190, 0.22);
+      border-radius: 999px; backdrop-filter: blur(4px);
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
+      opacity: 0; transition: opacity 1.8s ease 0.6s;
+    }
+    .message.visible { opacity: 1; }
+
+    .hint {
+      position: fixed; top: max(22px, env(safe-area-inset-top)); left: 0; right: 0;
+      text-align: center; color: rgba(245, 220, 242, .7); z-index: 5;
+      font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+      pointer-events: none; transition: opacity 1.8s ease;
+    }
+    .hint.hide { opacity: 0; }
+  </style>
+</head>
+<body>
+
+  <!-- The Nasty Trick Screen -->
+  <div id="trick-screen">
+    <div class="trick-card">
+      <h2>Hold on a second, Brenda... 🛑</h2>
+      <p>Before you see this, you gotta confess: Who else handles your body, leaves you breathless, and ruins you for anyone else quite like I do? 😈🔥</p>
+      <div class="trick-buttons" id="buttonContainer">
+        <button class="btn btn-yes" id="yesBtn">Only you, daddy 🥵</button>
+        <button class="btn btn-no" id="noBtn">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint" id="hint">Touch &amp; glide across the heart</div>
+
+  <!-- Expanded Multicolor Floating Butterflies & Emojis -->
+  <div class="butterfly-container" id="butterflyContainer">
+    <div class="floating-butterfly" style="left: 3%; animation-duration: 12s; animation-delay: 0s; filter: drop-shadow(0 0 10px #ff99c8);">🦋</div>
+    <div class="floating-butterfly" style="left: 15%; animation-duration: 15s; animation-delay: 2s; filter: drop-shadow(0 0 10px #ff3b7f);">🥰</div>
+    <div class="floating-butterfly" style="left: 28%; animation-duration: 10s; animation-delay: 1s; filter: drop-shadow(0 0 10px #b58aff);">💋</div>
+    <div class="floating-butterfly" style="left: 42%; animation-duration: 14s; animation-delay: 3s; filter: drop-shadow(0 0 10px #ffd0a6);">🫀</div>
+    <div class="floating-butterfly" style="left: 58%; animation-duration: 16s; animation-delay: 0.5s; filter: drop-shadow(0 0 10px #ff6b9d);">💝</div>
+    <div class="floating-butterfly" style="left: 72%; animation-duration: 11s; animation-delay: 4s; filter: drop-shadow(0 0 10px #70d6ff);">❤️‍🔥</div>
+    <div class="floating-butterfly" style="left: 85%; animation-duration: 13s; animation-delay: 2.5s; filter: drop-shadow(0 0 10px #ff9770);">🦋</div>
+    <div class="floating-butterfly" style="left: 93%; animation-duration: 15s; animation-delay: 1.5s; filter: drop-shadow(0 0 10px #c34cff);">💋</div>
+  </div>
+
+  <div class="centerpiece" id="centerpiece">
+    <span class="eyebrow">Every beat belongs to</span>
+    <div class="name">Brenda</div>
+    <span class="sub">My peace, my home, my always</span>
+  </div>
+
+  <div class="message" id="message">In a universe of billions, my heart still finds you ♥</div>
+  <div class="vignette"></div>
+
+  <!-- Stable CDN build -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    // ---------- Nasty Trick / Impossible "No" Button Logic ----------
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const trickScreen = document.getElementById('trick-screen');
+
+    function dodgeButton() {
+      const x = (Math.random() - 0.5) * 180;
+      const y = (Math.random() - 0.5) * 80;
+      noBtn.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    noBtn.addEventListener('mouseover', dodgeButton);
+    noBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      dodgeButton();
+    });
+    noBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      dodgeButton();
+    });
+
+    yesBtn.addEventListener('click', () => {
+      trickScreen.classList.add('fade-out');
+      setTimeout(() => {
+        trickScreen.style.display = 'none';
+      }, 1000);
+    });
+
+    // ---------- Three.js Heart Animation Code (Pre-loaded) ----------
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.1, 180);
+    camera.position.set(0, 0, innerWidth < 600 ? 44 : 39);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+    document.body.appendChild(renderer.domElement);
+
+    const heartGroup = new THREE.Group();
+    scene.add(heartGroup);
+
+    const PARTICLE_COUNT = innerWidth < 700 ? 2800 : 4800;
+    const heartGeometry = new THREE.BufferGeometry();
+    const startPositions = new Float32Array(PARTICLE_COUNT * 3);
+    
+    const shapeFull = new Float32Array(PARTICLE_COUNT * 3);
+    const shapeHollow = new Float32Array(PARTICLE_COUNT * 3);
+    const shapeDiamond = new Float32Array(PARTICLE_COUNT * 3);
+    const shapeCrystal = new Float32Array(PARTICLE_COUNT * 3);
+    const shapeRibbon = new Float32Array(PARTICLE_COUNT * 3);
+    const shapeArrow = new Float32Array(PARTICLE_COUNT * 3);
+    const shapeBurst = new Float32Array(PARTICLE_COUNT * 3);
+
+    const positions = new Float32Array(PARTICLE_COUNT * 3);
+    const colors = new Float32Array(PARTICLE_COUNT * 3);
+    const spinDirections = new Float32Array(PARTICLE_COUNT);
+
+    const palettes = [
+      { c1: "#ff3b7f", c2: "#ffd0a6", c3: "#c34cff", c4: "#8b70ff" },
+      { c1: "#9d4edd", c2: "#ff70a6", c3: "#70d6ff", c4: "#ff9770" },
+      { c1: "#ff5964", c2: "#ffdda1", c3: "#35a7ff", c4: "#fdffb6" },
+      { c1: "#ff70a6", c2: "#c77dff", c3: "#e0aaff", c4: "#ff99c8" }
+    ];
+
+    function applyPalette(paletteIndex) {
+      const pal = palettes[paletteIndex % palettes.length];
+      const colA = new THREE.Color(pal.c1);
+      const colB = new THREE.Color(pal.c2);
+      const colC = new THREE.Color(pal.c3);
+      const colD = new THREE.Color(pal.c4);
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const i3 = i * 3;
+        const blend = Math.random();
+        const c = colA.clone().lerp(colB, blend * 0.58);
+        c.lerp(colC, Math.max(0, blend - 0.48) * 0.42);
+        c.lerp(colD, Math.random() * 0.18);
+        colors[i3] = c.r; colors[i3 + 1] = c.g; colors[i3 + 2] = c.b;
+      }
+      heartGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    }
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const i3 = i * 3;
+      const t = Math.random() * Math.PI * 2;
+      const depth = (Math.random() - 0.5) * 4.4;
+
+      const hx = 16 * Math.pow(Math.sin(t), 3);
+      const hy = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+      const jitter = 0.34;
+
+      const f1 = Math.sqrt(Math.random());
+      shapeFull[i3] = hx * 0.73 * f1 + (Math.random() - 0.5) * jitter;
+      shapeFull[i3 + 1] = hy * 0.73 * f1 + (Math.random() - 0.5) * jitter;
+      shapeFull[i3 + 2] = depth * f1 + (Math.random() - 0.5) * 1.4;
+
+      const f2 = 0.85 + Math.random() * 0.18;
+      shapeHollow[i3] = hx * 0.78 * f2;
+      shapeHollow[i3 + 1] = hy * 0.78 * f2;
+      shapeHollow[i3 + 2] = depth * 1.8;
+
+      const f3 = Math.random();
+      shapeDiamond[i3] = hx * 0.68 * f3 + Math.sin(t * 4) * 0.9;
+      shapeDiamond[i3 + 1] = hy * 0.68 * f3 + Math.cos(t * 4) * 0.9;
+      shapeDiamond[i3 + 2] = depth * 2.2;
+
+      shapeCrystal[i3] = Math.round(hx * 0.7 * f1);
+      shapeCrystal[i3 + 1] = Math.round(hy * 0.7 * f1);
+      shapeCrystal[i3 + 2] = Math.round(depth * 1.5);
+
+      const ribbonAngle = t * 3;
+      shapeRibbon[i3] = hx * 0.72 + Math.cos(ribbonAngle) * 1.2;
+      shapeRibbon[i3 + 1] = hy * 0.72 + Math.sin(ribbonAngle) * 1.2;
+      shapeRibbon[i3 + 2] = depth * 1.2;
+
+      const isArrow = i % 5 === 0;
+      if (isArrow) {
+        const span = (Math.random() - 0.5) * 24;
+        shapeArrow[i3] = span;
+        shapeArrow[i3 + 1] = span * 0.3;
+        shapeArrow[i3 + 2] = 0;
+      } else {
+        shapeArrow[i3] = hx * 0.7 * f1;
+        shapeArrow[i3 + 1] = hy * 0.7 * f1;
+        shapeArrow[i3 + 2] = depth;
+      }
+
+      const f4 = 0.5 + Math.random() * 0.6;
+      shapeBurst[i3] = hx * 0.8 * f4 * (1 + Math.sin(t * 8) * 0.1);
+      shapeBurst[i3 + 1] = hy * 0.8 * f4 * (1 + Math.cos(t * 8) * 0.1);
+      shapeBurst[i3 + 2] = depth * 2.5;
+
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 18 + Math.random() * 42;
+      const verticalSpread = (Math.random() - 0.5) * 46;
+      startPositions[i3] = Math.cos(angle) * radius;
+      startPositions[i3 + 1] = verticalSpread;
+      startPositions[i3 + 2] = Math.sin(angle) * radius - 10;
+
+      positions[i3] = startPositions[i3];
+      positions[i3 + 1] = startPositions[i3 + 1];
+      positions[i3 + 2] = startPositions[i3 + 2];
+
+      spinDirections[i] = (Math.random() > 0.5 ? 1 : -1) * (0.6 + Math.random() * 0.8);
+    }
+
+    applyPalette(0);
+    heartGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+    const heartMaterial = new THREE.PointsMaterial({
+      size: innerWidth < 700 ? 0.24 : 0.18,
+      vertexColors: true, transparent: true, opacity: 0.95,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+      sizeAttenuation: true
+    });
+    const heart = new THREE.Points(heartGeometry, heartMaterial);
+    heartGroup.add(heart);
+
+    // Fireflies
+    const FIREFLY_COUNT = 70;
+    const fireflyGeometry = new THREE.BufferGeometry();
+    const fireflyPositions = new Float32Array(FIREFLY_COUNT * 3);
+    for (let i = 0; i < FIREFLY_COUNT; i++) {
+      fireflyPositions[i * 3] = (Math.random() - 0.5) * 50;
+      fireflyPositions[i * 3 + 1] = (Math.random() - 0.5) * 34;
+      fireflyPositions[i * 3 + 2] = -4 - Math.random() * 18;
+    }
+    fireflyGeometry.setAttribute("position", new THREE.BufferAttribute(fireflyPositions, 3));
+    const fireflies = new THREE.Points(fireflyGeometry, new THREE.PointsMaterial({
+      color: "#ffc6d9", size: 0.28, transparent: true, opacity: 0.75,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    scene.add(fireflies);
+
+    // Touch & Pointer
+    const pointer = new THREE.Vector2(10, 10);
+    const pointerWorld = new THREE.Vector3(1000, 1000, 0);
+    let pointerActive = false;
+
+    function updatePointer(clientX, clientY) {
+      pointer.x = (clientX / innerWidth) * 2 - 1;
+      pointer.y = -(clientY / innerHeight) * 2 + 1;
+      const distance = camera.position.z;
+      const vFov = THREE.MathUtils.degToRad(camera.fov);
+      const visibleHeight = 2 * Math.tan(vFov / 2) * distance;
+      const visibleWidth = visibleHeight * camera.aspect;
+      pointerWorld.set(pointer.x * visibleWidth / 2, pointer.y * visibleHeight / 2, 0);
+      pointerActive = true;
+    }
+    addEventListener("pointermove", e => updatePointer(e.clientX, e.clientY), { passive: true });
+    addEventListener("pointerdown", e => updatePointer(e.clientX, e.clientY), { passive: true });
+    addEventListener("pointerup", () => { pointerActive = false; }, { passive: true });
+
+    const clock = new THREE.Clock();
+    const ASSEMBLE_DURATION = 3.5;
+    const ROUTINE_CYCLE = 12.0;
+    let textRevealed = false;
+    let lastPaletteIndex = 0;
+    let activeShape = shapeFull;
+
+    const shapesList = [shapeFull, shapeHollow, shapeDiamond, shapeCrystal, shapeRibbon, shapeArrow, shapeBurst];
+
+    function easeInOutCubic(x) {
+      return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const time = clock.getElapsedTime();
+
+      const rawProgress = Math.min(time / ASSEMBLE_DURATION, 1);
+      const morph = easeInOutCubic(rawProgress);
+
+      let extraSpinY = 0, extraTiltZ = 0;
+
+      if (time > ASSEMBLE_DURATION) {
+        const postTime = time - ASSEMBLE_DURATION;
+        const loopIndex = Math.floor(postTime / ROUTINE_CYCLE);
+        const phaseTime = postTime % ROUTINE_CYCLE;
+
+        if (loopIndex !== lastPaletteIndex) {
+          lastPaletteIndex = loopIndex;
+          applyPalette(loopIndex);
+          activeShape = shapesList[loopIndex % shapesList.length];
+        }
+
+        if (phaseTime >= 3.5 && phaseTime <= 7.5) {
+          const p = easeInOutCubic((phaseTime - 3.5) / 4.0);
+          const dir = loopIndex % 2 === 0 ? 1 : -1;
+          extraSpinY = dir * p * Math.PI * 2;
+          extraTiltZ = Math.sin(p * Math.PI) * 0.14 * dir;
+        }
+      }
+
+      const beatStrength = Math.max(0, (rawProgress - 0.78) / 0.22);
+      const beatTime = Math.max(0, time - ASSEMBLE_DURATION * 0.78);
+      const cycle = beatTime % 1.15;
+      const lub = Math.exp(-Math.pow((cycle - 0.12) / 0.072, 2));
+      const dub = 0.62 * Math.exp(-Math.pow((cycle - 0.34) / 0.082, 2));
+      const heartbeat = 1 + beatStrength * (0.065 * lub + 0.038 * dub + 0.006 * Math.sin(time * 2.1));
+
+      heartGroup.scale.setScalar(heartbeat);
+      heartGroup.rotation.y = (1 - morph) * Math.PI * 1.6 + extraSpinY + Math.sin(time * 0.28) * 0.12 * morph;
+      heartGroup.rotation.x = Math.sin(time * 0.22) * 0.055 * morph;
+      heartGroup.rotation.z = extraTiltZ + Math.sin(time * 0.18) * 0.025 * morph;
+
+      const pos = heartGeometry.attributes.position.array;
+      const radius = 5.5;
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const i3 = i * 3;
+        const sx = startPositions[i3], sy = startPositions[i3 + 1], sz = startPositions[i3 + 2];
+        const tx = activeShape[i3], ty = activeShape[i3 + 1], tz = activeShape[i3 + 2];
+
+        const vortexAngle = (1 - morph) * 3.4 * spinDirections[i];
+        const vortexRadius = Math.sin(rawProgress * Math.PI) * 6.5;
+
+        let bx = sx + (tx - sx) * morph + Math.cos(vortexAngle) * vortexRadius * (1 - morph);
+        let by = sy + (ty - sy) * morph + Math.sin(vortexAngle) * vortexRadius * (1 - morph);
+        let bz = sz + (tz - sz) * morph;
+
+        let dx = 0, dy = 0;
+        if (pointerActive && morph > 0.65) {
+          const px = bx - pointerWorld.x;
+          const py = by - pointerWorld.y;
+          const d2 = px * px + py * py;
+          if (d2 < radius * radius) {
+            const d = Math.sqrt(d2) + 0.001;
+            const influence = Math.pow(1 - d / radius, 2);
+            dx = (px / d * 0.9 - py / d * 0.45) * influence;
+            dy = (py / d * 0.9 + px / d * 0.45) * influence;
+          }
+        }
+
+        const shimmer = Math.sin(time * 2.4 + i * 0.017) * 0.028 * morph;
+        pos[i3] += ((bx + dx) - pos[i3]) * 0.14;
+        pos[i3 + 1] += ((by + dy) - pos[i3 + 1]) * 0.14;
+        pos[i3 + 2] += (bz + shimmer - 
